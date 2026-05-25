@@ -68,8 +68,14 @@
                 </div>
             </div>
 
-            <script language="javascript">
-                print_state("sts");
+            <script src="{{ url_for('static', filename='scripts/cities.js') }}"></script>
+            <script>
+                // We use DOMContentLoaded to ensure the HTML elements exist before the script fires
+                document.addEventListener("DOMContentLoaded", function() {
+                    if (typeof print_state === "function") {
+                        print_state("sts");
+                    }
+                });
             </script>
 
             <div class="pt-6">

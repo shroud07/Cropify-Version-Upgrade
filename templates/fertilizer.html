@@ -1,6 +1,19 @@
 {% extends 'layout.html' %} 
 
 {% block body %}
+<style>
+/* Hide number input arrows in Chrome, Edge, Safari */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Hide number input arrows in Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+</style>
 <div class="max-w-2xl mx-auto py-12 animate-fade-in-up">
     
     <div class="text-center mb-10">
