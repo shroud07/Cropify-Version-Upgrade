@@ -1,26 +1,21 @@
-{% extends 'layout.html' %} {% block body %}
+{% extends 'layout.html' %} 
 
-
-
-
-<div class="container py-2 mx-auto my-50 h-10 text-center" style="margin: 9rem;">
-  <div class="row">
-    <div class="col-sm py-2 py-md-3">
-      <div class="card card-body" style="justify-content: center; background-color:blanchedalmond">
-        <h1 class="text-center" style="color: black; font-size: 20px;"><b>Sorry we couldn't process your request
-            currently. <br> Please try again</b></h1>
-
-
-        <a href="{{ url_for('home') }}">
-          <button type="submit" class="btn btn-info text-center" style="
-        color: black;
-        font-weight: bold;
-        margin: 1rem;">
-            Try again
-          </button>
+{% block body %}
+<div class="max-w-lg mx-auto py-24 animate-fade-in-up text-center">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 p-10">
+        
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 mb-6">
+            <i class="ph ph-cloud-warning text-4xl"></i>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">API Error</h2>
+        <p class="text-gray-500 dark:text-gray-400 mb-8">
+            Sorry, we couldn't fetch the weather data for the selected city or process your request currently. Please try again.
+        </p>
+        
+        <a href="{{ url_for('home') }}" class="inline-flex items-center justify-center gap-2 w-full py-4 px-8 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold hover:scale-[1.02] transition-transform shadow-lg">
+            <i class="ph ph-house"></i> Return Home
         </a>
-      </div>
     </div>
-  </div>
 </div>
 {% endblock %}
