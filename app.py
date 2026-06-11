@@ -10,10 +10,9 @@ import requests
 import os
 import pickle
 import io
-import torch
-from torchvision import transforms
+import onnxruntime as ort
 from PIL import Image
-from utils.model import ResNet9
+
 # ==============================================================================================
 
 # -------------------------LOADING THE TRAINED MODELS -----------------------------------------------
@@ -59,11 +58,10 @@ disease_classes = ['Apple___Apple_scab',
                    'Tomato___Tomato_mosaic_virus',
                    'Tomato___healthy']
 
-disease_model_path = 'models/plant_disease_model.pth'
-disease_model = ResNet9(3, len(disease_classes))
-disease_model.load_state_dict(torch.load(
-    disease_model_path, map_location=torch.device('cpu')))
-disease_model.eval()
+disease_model_path = 'models/plant_disease_model.onnx'
+
+# This spins up the lightweight ONNX inference engine
+ort_session = ort.InferenceSession(disease_model_path)
 
 
 # Loading crop recommendation model
@@ -105,26 +103,35 @@ def weather_fetch(city_name):
         return None
 
 
-def predict_image(img, model=disease_model):
+def predict_image(img):
     """
-    Transforms image to tensor and predicts disease label
-    :params: image
+    Transforms image to match tensor formatting using NumPy and predicts via ONNX Runtime
+    :params: image bytes
     :return: prediction (string)
     """
-    transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.ToTensor(),
-    ])
-    image = Image.open(io.BytesIO(img))
-    img_t = transform(image)
-    img_u = torch.unsqueeze(img_t, 0)
+    # 1. Open the image file bytes and format to RGB
+    image = Image.open(io.BytesIO(img)).convert('RGB')
+    
+    # 2. Resize to 256x256 (matches what your model expects)
+    image = image.resize((256, 256))
+    
+    # 3. Convert to a float32 array and normalize values between 0.0 and 1.0
+    img_np = np.array(image, dtype=np.float32) / 255.0
+    
+    # 4. Rearrange dimensions from HWC (Height, Width, Channels) to CHW (Channels, Height, Width)
+    img_np = np.transpose(img_np, (2, 0, 1))
+    
+    # 5. Add a batch dimension out front so shape becomes (1, 3, 256, 256)
+    img_np = np.expand_dims(img_np, axis=0)
 
-    # Get predictions from model
-    yb = model(img_u)
-    # Pick index with highest probability
-    _, preds = torch.max(yb, dim=1)
-    prediction = disease_classes[preds[0].item()]
-    # Retrieve the class label
+    # 6. Run inference through the lightweight ONNX session
+    ort_inputs = {ort_session.get_inputs()[0].name: img_np}
+    ort_outs = ort_session.run(None, ort_inputs)
+    
+    # 7. Extract the index with the highest probability value
+    preds = np.argmax(ort_outs[0], axis=1)
+    prediction = disease_classes[preds[0]]
+    
     return prediction
 
 # ===============================================================================================
@@ -157,10 +164,6 @@ def fertilizer_recommendation():
     title = 'Cropify - Fertilizer Suggestion'
 
     return render_template('fertilizer.html', title=title)
-
-# render disease prediction input page
-
-
 
 
 # ===============================================================================================
